@@ -30,7 +30,10 @@ test('frida-tools', python,
   workdir: meson.current_source_dir(),
   env: {
     'PYTHONPATH': pathsep.join([
+      meson.current_source_dir() / '..' / 'frida-python',
+      meson.current_build_dir() / '..' / 'frida-python',
       meson.current_source_dir() / 'subprojects' / 'frida-python',
+      meson.current_build_dir() / 'subprojects' / 'frida-python',
       meson.current_build_dir() / 'subprojects' / 'frida-python' / 'src',
     ]),
   },
