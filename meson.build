@@ -29,6 +29,7 @@ test('frida-tools', python,
   args: ['-m', 'unittest', 'discover'],
   workdir: meson.current_source_dir(),
   env: {
+    'FRIDA_TOOLS_BUILD_DIR': meson.current_build_dir(),
     'PYTHONPATH': pathsep.join([
       meson.current_source_dir() / '..' / 'frida-python',
       meson.current_build_dir() / '..' / 'frida-python',

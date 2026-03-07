@@ -2,12 +2,12 @@ import json
 import os
 import struct
 from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import List, Optional, Sequence, Tuple, TypeVar, Union
 
 import frida
 from frida.core import RPCException
 
+from frida_tools._assets import read_text_asset
 from frida_tools.reactor import Reactor
 
 CodeLocation = Union[
@@ -344,7 +344,7 @@ class InstructionTracer:
 
         self._ui = ui
 
-        agent_source = (Path(__file__).parent / "itracer_agent.js").read_text(encoding="utf-8")
+        agent_source = read_text_asset("itracer_agent.js")
 
         try:
             tracer_script = session.create_script(name="itracer", source=agent_source, runtime=runtime)

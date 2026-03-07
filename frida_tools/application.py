@@ -22,6 +22,7 @@ import colorama
 import frida
 import frida._frida as _frida
 
+from frida_tools._assets import resolve_bridge
 from frida_tools.reactor import Reactor
 
 AUX_OPTION_PATTERN = re.compile(r"(.+)=\((string|bool|int)\)(.+)")
@@ -891,7 +892,7 @@ class ConsoleApplication:
             return False
 
         stem = payload["name"].lower()
-        bridge = next(p for p in (Path(__file__).parent / "bridges").glob("*.js") if p.stem == stem)
+        bridge = resolve_bridge(stem)
 
         script.post(
             {

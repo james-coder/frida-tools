@@ -1,6 +1,4 @@
 import argparse
-import codecs
-import os
 from datetime import datetime, timezone
 from operator import itemgetter
 from typing import Any, List
@@ -8,6 +6,7 @@ from typing import Any, List
 from colorama import Fore, Style
 
 from frida_tools.application import ConsoleApplication
+from frida_tools._assets import read_text_asset
 
 STYLE_DIR = Fore.BLUE + Style.BRIGHT
 STYLE_EXECUTABLE = Fore.GREEN + Style.BRIGHT
@@ -37,9 +36,7 @@ class LsApplication(ConsoleApplication):
         try:
             self._attach(self._pick_worker_pid())
 
-            data_dir = os.path.dirname(__file__)
-            with codecs.open(os.path.join(data_dir, "fs_agent.js"), "r", "utf-8") as f:
-                source = f.read()
+            source = read_text_asset("fs_agent.js")
 
             def on_message(message: Any, data: Any) -> None:
                 print(message)

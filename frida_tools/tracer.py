@@ -24,6 +24,7 @@ import websockets.datastructures
 import websockets.exceptions
 import websockets.http11
 
+from frida_tools._assets import read_text_asset, resolve_asset
 from frida_tools.reactor import Reactor
 
 MANPAGE_CONTROL_CHARS = re.compile(r"\.[a-zA-Z]*(\s|$)|\s?\"")
@@ -42,7 +43,7 @@ def main() -> None:
         def __init__(self) -> None:
             super().__init__(await_ctrl_c)
             self._handlers = OrderedDict()
-            self._ui_zip = ZipFile(Path(__file__).parent / "tracer_ui.zip", "r")
+            self._ui_zip = ZipFile(resolve_asset("tracer_ui.zip"), "r")
             self._ui_socket_handlers: Set[UISocketHandler] = set()
             self._ui_worker = None
             self._asyncio_loop = None
@@ -622,9 +623,8 @@ class Tracer:
         self._message_handler = on_message
 
         ui.on_trace_progress("initializing")
-        data_dir = Path(__file__).parent
         source = (
-            (data_dir / "tracer_agent.js").read_text(encoding="utf-8").replace("/agent.js", "/frida/tracer/agent.js", 1)
+            read_text_asset("tracer_agent.js").replace("/agent.js", "/frida/tracer/agent.js", 1)
         )
         script = session.create_script(name="tracer", source=source, runtime=runtime)
 

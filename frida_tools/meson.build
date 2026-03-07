@@ -1,5 +1,6 @@
 sources = [
   '__init__.py',
+  '_assets.py',
   '_repl_magic.py',
   'apk.py',
   'application.py',

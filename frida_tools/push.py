@@ -1,5 +1,4 @@
 import argparse
-import codecs
 import os
 import sys
 import time
@@ -9,6 +8,7 @@ from typing import AnyStr, List, MutableMapping, Optional
 import frida
 from colorama import Fore, Style
 
+from frida_tools._assets import read_text_asset
 from frida_tools.application import ConsoleApplication
 from frida_tools.stream_controller import DisposedException, StreamController
 from frida_tools.units import bytes_to_megabytes
@@ -47,9 +47,7 @@ class PushApplication(ConsoleApplication):
         try:
             self._attach(self._pick_worker_pid())
 
-            data_dir = os.path.dirname(__file__)
-            with codecs.open(os.path.join(data_dir, "fs_agent.js"), "r", "utf-8") as f:
-                source = f.read()
+            source = read_text_asset("fs_agent.js")
 
             def on_message(message, data) -> None:
                 self._reactor.schedule(lambda: self._on_message(message, data))

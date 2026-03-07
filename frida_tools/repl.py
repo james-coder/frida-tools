@@ -29,6 +29,7 @@ from pygments.lexers.javascript import JavascriptLexer
 from pygments.token import Token
 
 from frida_tools import _repl_magic
+from frida_tools._assets import read_text_asset
 from frida_tools.application import ConsoleApplication
 from frida_tools.cli_formatting import THEME_COLOR, format_compiled, format_compiling, format_diagnostic
 from frida_tools.reactor import Reactor
@@ -715,9 +716,8 @@ class REPLApplication(ConsoleApplication):
     def _create_repl_script(self) -> str:
         raw_fragments = []
 
-        data_dir = Path(__file__).parent
         raw_fragments.append(
-            (data_dir / "repl_agent.js").read_text(encoding="utf-8").replace("/agent.js", "/frida/repl/agent.js", 1)
+            read_text_asset("repl_agent.js").replace("/agent.js", "/frida/repl/agent.js", 1)
         )
 
         if self._codeshare_script is not None:
