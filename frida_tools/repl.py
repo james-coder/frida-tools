@@ -294,9 +294,7 @@ class REPLApplication(ConsoleApplication):
         self._script = script
 
         def on_message(message: Mapping[Any, Any], data: Any) -> None:
-            if self.try_handle_bridge_request(message, self._script):
-                return
-            self._reactor.schedule(lambda: self._process_message(message, data))
+            self._on_script_message(script, message, data)
 
         script.on("message", on_message)
         self._on_script_created(script)
@@ -683,6 +681,15 @@ class REPLApplication(ConsoleApplication):
         elif result[0] == "error":
             raise JavaScriptError(result[1])
         return (result[0], result[1])
+
+    def _on_script_message(self, script: frida.core.Script, message: Mapping[Any, Any], data: Any) -> None:
+        if self._script is not script:
+            return
+
+        if self.try_handle_bridge_request(message, script):
+            return
+
+        self._reactor.schedule(lambda: self._process_message(message, data))
 
     def _process_message(self, message: Mapping[Any, Any], data: Any) -> None:
         message_type = message["type"]

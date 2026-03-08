@@ -616,9 +616,7 @@ class Tracer:
         self._repository.on_update(on_update)
 
         def on_message(message: Mapping[Any, Any], data: Any) -> None:
-            if ui.try_handle_bridge_request(message, self._script):
-                return
-            self._reactor.schedule(lambda: self._on_message(message, data, ui))
+            self._on_script_message(script, message, data, ui)
 
         self._message_handler = on_message
 
@@ -665,8 +663,17 @@ class Tracer:
     def resolve_addresses(self, addresses: List[str]) -> List[str]:
         return self._agent.resolve_addresses(addresses)
 
-    def _on_message(self, message, data, ui) -> None:
-        if self._script is None:
+    def _on_script_message(self, script: frida.core.Script, message, data, ui) -> None:
+        if self._script is not script:
+            return
+
+        if ui.try_handle_bridge_request(message, script):
+            return
+
+        self._reactor.schedule(lambda: self._on_message(script, message, data, ui))
+
+    def _on_message(self, script: frida.core.Script, message, data, ui) -> None:
+        if self._script is not script:
             return
 
         handled = False

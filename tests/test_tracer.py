@@ -69,8 +69,10 @@ class TestMemoryRepository(unittest.TestCase):
         reactor = Reactor(lambda reactor: None)
         tracer = Tracer(reactor, MemoryRepository(), TracerProfileBuilder().build())
 
+        stale_script = object()
         tracer._script = None
         tracer._on_message(
+            stale_script,
             {
                 "type": "send",
                 "payload": {
@@ -83,6 +85,32 @@ class TestMemoryRepository(unittest.TestCase):
             None,
             UI(),
         )
+
+    def test_tracer_ignores_stale_script_callbacks(self):
+        scheduled = []
+
+        class DummyReactor:
+            def schedule(self, work):
+                scheduled.append(work)
+
+        class DummyUI(UI):
+            def __init__(self):
+                self.bridge_calls = []
+
+            def try_handle_bridge_request(self, message, script):
+                self.bridge_calls.append((message, script))
+                return False
+
+        tracer = Tracer(DummyReactor(), MemoryRepository(), TracerProfileBuilder().build())
+        active_script = object()
+        stale_script = object()
+        ui = DummyUI()
+
+        tracer._script = active_script
+        tracer._on_script_message(stale_script, {"type": "send"}, None, ui)
+
+        self.assertEqual(ui.bridge_calls, [])
+        self.assertEqual(scheduled, [])
 
 
 if __name__ == "__main__":
