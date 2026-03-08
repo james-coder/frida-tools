@@ -6,7 +6,7 @@ import unittest
 import frida
 
 from frida_tools.reactor import Reactor
-from frida_tools.tracer import UI, MemoryRepository, Tracer, TracerProfileBuilder
+from frida_tools.tracer import MemoryRepository, TraceTarget, Tracer, TracerProfileBuilder, UI
 
 from .data import target_program
 
@@ -40,6 +40,49 @@ class TestTracer(unittest.TestCase):
 
         reactor.schedule(start)
         reactor.run()
+
+
+class TestMemoryRepository(unittest.TestCase):
+    def test_reuses_handlers_by_target_identifier(self):
+        repo = MemoryRepository()
+        events = []
+
+        repo.on_create(lambda target, handler, source: events.append(("create", target.identifier, source, handler)))
+        repo.on_load(lambda target, handler, source: events.append(("load", target.identifier, source, handler)))
+
+        original = TraceTarget(7, "native", "libc.so", "open", "open", None)
+        duplicate = TraceTarget(7, "native", "libc.so", "open", "open", None)
+
+        first_handler = repo.ensure_handler(original)
+        second_handler = repo.ensure_handler(duplicate)
+
+        self.assertEqual(first_handler, second_handler)
+        self.assertEqual(
+            events,
+            [
+                ("create", 7, "memory", first_handler),
+                ("load", 7, "memory", first_handler),
+            ],
+        )
+
+    def test_tracer_ignores_messages_after_stop(self):
+        reactor = Reactor(lambda reactor: None)
+        tracer = Tracer(reactor, MemoryRepository(), TracerProfileBuilder().build())
+
+        tracer._script = None
+        tracer._on_message(
+            {
+                "type": "send",
+                "payload": {
+                    "type": "handlers:get",
+                    "flavor": "native",
+                    "baseId": 1,
+                    "scopes": [{"name": "libc.so", "members": ["open"]}],
+                },
+            },
+            None,
+            UI(),
+        )
 
 
 if __name__ == "__main__":

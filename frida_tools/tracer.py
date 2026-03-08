@@ -666,6 +666,9 @@ class Tracer:
         return self._agent.resolve_addresses(addresses)
 
     def _on_message(self, message, data, ui) -> None:
+        if self._script is None:
+            return
+
         handled = False
 
         if message["type"] == "send":
@@ -1095,13 +1098,13 @@ class CFuncSpec:
 class MemoryRepository(Repository):
     def __init__(self) -> None:
         super().__init__()
-        self._handlers = {}
+        self._handler_by_id = {}
 
     def ensure_handler(self, target: TraceTarget) -> str:
-        handler = self._handlers.get(target)
+        handler = self._handler_by_id.get(target.identifier)
         if handler is None:
             handler = self._create_stub_handler(target, False)
-            self._handlers[target] = handler
+            self._handler_by_id[target.identifier] = handler
             self._notify_create(target, handler, "memory")
         else:
             self._notify_load(target, handler, "memory")
